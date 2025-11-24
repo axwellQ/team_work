@@ -1,0 +1,89 @@
+name: Repository Structure Check
+on:
+  workflow_dispatch: null
+jobs:
+  check-structure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Check README.md exists and not empty
+        run: |
+          if [ ! -f "README.md" ]; then
+            echo "❌ Ошибка: README.md не найден в корне репозитория"
+            exit 1
+          fi
+
+          if [ ! -s "README.md" ]; then
+            echo "❌ Ошибка: README.md пустой"
+            exit 1
+          fi
+
+          echo "✅ README.md существует и не пустой"
+      - name: Check dev folder and solution file
+        run: |
+          if [ ! -d "dev" ]; then
+            echo "❌ Ошибка: папка dev не существует"
+            exit 1
+          fi
+
+          if [ -f "dev/solution.py" ]; then
+            if [ ! -s "dev/solution.py" ]; then
+              echo "❌ Ошибка: dev/solution.py пустой"
+              exit 1
+            fi
+            echo "✅ dev/solution.py существует и не пустой"
+          elif [ -f "dev/solution.cs" ]; then
+            if [ ! -s "dev/solution.cs" ]; then
+              echo "❌ Ошибка: dev/solution.cs пустой"
+              exit 1
+            fi
+            echo "✅ dev/solution.cs существует и не пустой"
+          else
+            echo "❌ Ошибка: ни dev/solution.py ни dev/solution.cs не найдены"
+            exit 1
+          fi
+      - name: Check spec folder and codex.md
+        run: |
+          if [ ! -d "spec" ]; then
+            echo "❌ Ошибка: папка spec не существует"
+            exit 1
+          fi
+
+          if [ ! -f "spec/codex.md" ]; then
+            echo "❌ Ошибка: spec/codex.md не найден"
+            exit 1
+          fi
+
+          if [ ! -s "spec/codex.md" ]; then
+            echo "❌ Ошибка: spec/codex.md пустой"
+            exit 1
+          fi
+
+          echo "✅ spec/codex.md существует и не пустой"
+      - name: Check demo folder with files
+        run: |
+          if [ ! -d "demo" ]; then
+            echo "❌ Ошибка: папка demo не существует"
+            exit 1
+          fi
+
+          # Проверяем, что в папке есть хотя бы один непустой файл
+          found_file=false
+          while IFS= read -r file; do
+            if [ -f "$file" ] && [ -s "$file" ]; then
+              echo "✅ Найден непустой файл: $file"
+              found_file=true
+              break
+            fi
+          done < <(find demo -type f 2>/dev/null)
+
+          if [ "$found_file" = false ]; then
+            echo "❌ Ошибка: в папке demo нет непустых файлов"
+            exit 1
+          fi
+
+          echo "✅ В папке demo есть непустые файлы"
+      - name: Success message
+        run: |
+          echo "✅ Все проверки пройдены успешно!"
