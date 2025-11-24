@@ -1,0 +1,39 @@
+name: Add to CONTRIBUTING.md on New Branch
+
+on:
+  create:
+    branches:
+      - '**'
+
+jobs:
+  add-contribution-line:
+    if: github.event.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.ref }}
+      
+      - name: Generate random number
+        id: random
+        run: |
+          RANDOM_NUM=$((RANDOM % 10 + 1))
+          echo "number=$RANDOM_NUM" >> $GITHUB_OUTPUT
+      
+      - name: Add line to CONTRIBUTING.md
+        run: |
+          if [ ! -f CONTRIBUTING.md ]; then
+            echo "Ваш вариант - ${{ steps.random.outputs.number }}" > CONTRIBUTING.md
+          else
+            sed -i "1i Ваш вариант - ${{ steps.random.outputs.number }}" CONTRIBUTING.md
+          fi
+      
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CONTRIBUTING.md
+          git commit -m "docs: add contribution variant for branch ${{ github.event.ref }}"
+          git push
